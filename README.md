@@ -3,7 +3,8 @@
 Check current event logs information from the AWS Service Health Dashboard
 
 The endpoint for the API is: https://health.us-east-1.amazonaws.com (provides event data for all regions)
-source: [AWS Health API] (https://docs.aws.amazon.com/health/latest/ug/getting-started-api.html)
+
+source: [AWS Health API](https://docs.aws.amazon.com/health/latest/ug/getting-started-api.html)
 
 ```
 usage: 
