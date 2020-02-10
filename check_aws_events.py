@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import sys
+import re
 import json
 import boto3
 import time
@@ -12,19 +13,23 @@ parser.add_argument('-s', '--service', help='Check the mentioned service.')
 parser.add_argument('-r', '--region', help='Check in the mentioned region.')
 args = parser.parse_args()
 
+regions = str([args.region])
+region = re.sub(r"[\'\[\]]", '', regions)
+screened_events = []
+event_type = []
+
 def get_describe_event():
-    health = boto3.client('health')
+    health = boto3.client('health', region_name=region)
+    # For different regions pass id and key as arguments: 
+    # health = boto3.client('health', region_name=region, aws_access_key_id = id, aws_secret_access_key = key)
     response = health.describe_events(
         filter={
-            'regions': [args.region],
             'services': [args.service],
             'eventStatusCodes': ['open', 'upcoming']
         }
     )
     return response
 
-screened_events = []
-event_type = []
 result = get_describe_event()
 results = json.dumps(result, indent=3, sort_keys=True, default=str)
 parsed_data = json.loads(results)
@@ -54,8 +59,14 @@ if parsed_data["events"]:
 
     if last_posted_date.days < 10:
         print ("WARNING - Attention needed for %s" % (event['eventTypeCode']))
+        sys.exit(1)
     elif last_posted_date.days > 10:
         print ("CRITICAL - Attention needed for %s" % (event['eventTypeCode']))
+        sys.exit(2)
+    # elif id or key != "" :
+    #   print("UNKNOWN - Missing credentials")
+    #   sys.exit(3)
 
 else:
     print("OK - No new notifications for %s service" % (args.service))
+    sys.exit(0)
